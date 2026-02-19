@@ -14,9 +14,9 @@ services:
     image: postgres:17
     restart: always 
     environment:
-      POSTGRES_DB: audit_log
-      POSTGRES_USER: audit
-      POSTGRES_PASSWORD: audit
+      - POSTGRES_PASSWORD=${DB_PASS?Variable not set}
+      - POSTGRES_USER=${DB_USER?Variable not set}
+      - POSTGRES_DB=${DB_NAME?Variable not set}
     ports:
       - "5432:5432"
     volumes:

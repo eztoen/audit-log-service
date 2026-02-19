@@ -1,9 +1,16 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from sqlalchemy import text
+
 from app.db.session import engine
+from app.db.base import Base
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+        
+        yield
+        
+        await conn.close()
 
-@app.get('/')
-async def test():
-    return {'hello': 'world'}
+app = FastAPI(lifespan=lifespan)
