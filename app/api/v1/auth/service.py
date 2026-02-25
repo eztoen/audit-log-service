@@ -23,8 +23,8 @@ async def register_user(
         
     user = Users(
         username = new_user.username,
-        name = new_user.name,
-        surname = new_user.surname,
+        name = new_user.first_name,
+        surname = new_user.last_name,
         email = new_user.email,
         password = new_user.password
     )
