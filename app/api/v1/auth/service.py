@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 
 from .schemas import RegisterSchema
-from app.db.models.SQLAlchemy.users import Users
+from app.core.models import Users
 
 async def register_user(
     new_user: RegisterSchema,
@@ -32,7 +32,7 @@ async def register_user(
     
     try:
         await session.commit()
-        await session.refresh()
+        await session.refresh(user)
         
     except IntegrityError:
         raise HTTPException(

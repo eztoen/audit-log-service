@@ -1,8 +1,8 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
-from app.db.models import db_helper
-from app.db.models import Base
+from app.core.models import db_helper
+from app.core.models import Base
 
 #routers
 from app.api.v1.auth.router import router as auth_router
@@ -11,10 +11,11 @@ from app.api.v1.auth.router import router as auth_router
 async def lifespan(app: FastAPI):
     async with db_helper.engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        print('🔴 TABLES:', Base.metadata.tables)
         
-        yield
+    yield
         
-        await conn.close()
+    await conn.close()
 
 app = FastAPI(lifespan=lifespan)
 

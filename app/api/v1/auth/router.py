@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import get_db
+from app.core.models import get_db
 
 from .schemas import RegisterSchema
 from .service import register_user
