@@ -6,12 +6,13 @@ from fastapi import HTTPException, status
 
 from .schemas import RegisterSchema
 from app.core.models import Users
+from app.services.security.hashing import hash_password, verify_password
 
 async def get_user(
     session: AsyncSession,
     email: str
 ) -> Users | None:
-    stmt = select(Users).where(Users.email==email)
+    stmt = select(Users).where(Users.email == email)
     result = await session.execute(stmt)    
     
     return result.scalar_one_or_none()
@@ -35,10 +36,10 @@ async def register_user(
         
     user = Users(
         username = new_user.username,
-        name = new_user.first_name,
-        surname = new_user.last_name,
+        first_name = new_user.first_name,
+        last_name = new_user.last_name,
         email = new_user.email,
-        password = new_user.password
+        password = hash_password(new_user.password)
     )
     session.add(user)
     

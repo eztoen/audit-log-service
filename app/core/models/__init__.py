@@ -6,5 +6,5 @@ __all__ = (
 )
 
 from .base import Base
-from .auth_model import Users
+from .users_model import Users
 from .session import db_helper, get_db
