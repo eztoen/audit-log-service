@@ -4,9 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi import HTTPException, status
 
-from .schemas import RegisterSchema
+from .schemas import RegisterSchema, LoginSchema
 from app.core.models import Users
 from app.services.security.hashing import hash_password, verify_password
+from app.services.security.jwt import jwt_service
 
 async def get_user(
     session: AsyncSession,
@@ -56,10 +57,25 @@ async def register_user(
     return user
         
 async def login_user(
-    new_user: RegisterSchema,
+    user: LoginSchema,
     session: AsyncSession
 ):
-    user = await get_user(
+    exist_user = await get_user(
         session=session,
-        email=new_user.email
+        email=user.email
     )
+    
+    if not exist_user or not verify_password(user.password, exist_user.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Invalid credentials. Please try again'
+        )
+        
+    access_token = jwt_service.create_access_token({'sub': str(exist_user.id)})
+    
+    return {
+        'success': True,
+        'detail': 'You have successfully logged into your account',
+        'access_token': access_token,
+        'type': 'bearer'
+    }
