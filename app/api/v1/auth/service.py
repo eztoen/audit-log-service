@@ -7,13 +7,25 @@ from fastapi import HTTPException, status
 from .schemas import RegisterSchema
 from app.core.models import Users
 
+async def get_user(
+    session: AsyncSession,
+    email: str
+) -> Users | None:
+    stmt = select(Users).where(Users.email==email)
+    result = await session.execute(stmt)    
+    
+    return result.scalar_one_or_none()
+
+
 async def register_user(
     new_user: RegisterSchema,
     session: AsyncSession
-):
-    stmt = select(Users).where(Users.email==new_user.email)
-    result = await session.execute(stmt)
-    user = result.scalar_one_or_none()
+) -> Users:
+    
+    user = await get_user(
+        session=session,
+        email=new_user.email
+    )
     
     if user:
         raise HTTPException(
@@ -35,13 +47,18 @@ async def register_user(
         await session.refresh(user)
         
     except IntegrityError:
+        await session.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='The username already exists'
         )
-    
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_200_OK,
-            detail='You have successfully registered.'
-        )
+    return user
+        
+async def login_user(
+    new_user: RegisterSchema,
+    session: AsyncSession
+):
+    user = await get_user(
+        session=session,
+        email=new_user.email
+    )
