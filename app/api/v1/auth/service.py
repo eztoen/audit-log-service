@@ -9,7 +9,7 @@ from app.core.models import Users
 from app.services.security.hashing import hash_password, verify_password
 from app.services.security.jwt import jwt_service
 
-async def get_user(
+async def get_exist_user(
     session: AsyncSession,
     email: str
 ) -> Users | None:
@@ -24,10 +24,12 @@ async def register_user(
     session: AsyncSession
 ) -> Users:
     
-    user = await get_user(
+    user = await get_exist_user(
         session=session,
         email=new_user.email
     )
+    
+    print(user)
     
     if user:
         raise HTTPException(
@@ -60,7 +62,7 @@ async def login_user(
     user: LoginSchema,
     session: AsyncSession
 ):
-    exist_user = await get_user(
+    exist_user = await get_exist_user(
         session=session,
         email=user.email
     )
