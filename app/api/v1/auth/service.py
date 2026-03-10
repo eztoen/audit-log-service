@@ -6,18 +6,21 @@ from fastapi import HTTPException, status
 
 from .schemas import RegisterSchema, LoginSchema
 from app.core.models import Users
-from app.services.security.hashing import hash_password, verify_password
+from app.services.security.hashing import hash_value, verify_value
 from app.services.security.jwt import jwt_service
 
 async def get_exist_user(
     session: AsyncSession,
     email: str
 ) -> Users | None:
-    stmt = select(Users).where(Users.email == email)
-    result = await session.execute(stmt)    
+    
+    result = await session.execute(
+        select(Users).where(
+            Users.email == email
+        )
+    )
     
     return result.scalar_one_or_none()
-
 
 async def register_user(
     new_user: RegisterSchema,
@@ -29,12 +32,10 @@ async def register_user(
         email=new_user.email
     )
     
-    print(user)
-    
     if user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail='The email you have provided is already associated with an account'
+            detail='The email you have provided is already associated with an account.'
         )
         
     user = Users(
@@ -42,7 +43,7 @@ async def register_user(
         first_name = new_user.first_name,
         last_name = new_user.last_name,
         email = new_user.email,
-        password = hash_password(new_user.password)
+        password = hash_value(new_user.password)
     )
     session.add(user)
     
@@ -67,7 +68,7 @@ async def login_user(
         email=user.email
     )
     
-    if not exist_user or not verify_password(user.password, exist_user.password):
+    if not exist_user or not verify_value(user.password, exist_user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail='Invalid credentials. Please try again'
