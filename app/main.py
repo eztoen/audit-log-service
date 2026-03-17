@@ -6,6 +6,7 @@ from app.core.models import Base
 
 #routers
 from app.api.v1.auth.router import router as auth_router
+from app.api.v1.project.router import router as project_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -20,3 +21,4 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.include_router(auth_router)
+app.include_router(project_router)

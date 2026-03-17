@@ -14,7 +14,7 @@ def generate_api_key() -> str:
     return f'{prefix}{public_part}{secret_part}'
 
 def split_api_key(raw_key: str) -> tuple[str, str]:
-    key = raw_key.repalce('sk_live_', '')
+    key = raw_key.replace('sk_live_', '')
     public_part = key[:16]
     secret_part = key[16:]
     return public_part, secret_part

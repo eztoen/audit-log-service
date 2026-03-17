@@ -33,7 +33,7 @@ class JWTService:
         to_encode.update({'exp': expire})
         return jwt.encode(
             to_encode, 
-            key=self.settings.SECRET_KEY, 
+            key=self.settings.SECRET_KEY,
             algorithm=self.settings.ALGORITHM
         )
         
