@@ -21,3 +21,13 @@ async def create_project(
         session=session,
         user_id=user_id
     )
+    
+@router.get('/get_projects')
+async def get_projects(
+    session: AsyncSession = Depends(get_db),
+    user_id: int = Depends(jwt_service.get_user_id)
+):
+    return await service.get_projects(
+        session=session,
+        user_id=user_id
+    )

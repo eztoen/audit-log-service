@@ -41,3 +41,13 @@ async def create_project(
         )
     
     return project, raw_key
+
+async def get_projects(
+    session: AsyncSession,
+    user_id: int
+) -> Projects:
+    stmt = select(Projects).where(Projects.user_id == user_id)
+    result = await session.execute(stmt)
+    projects = result.scalars().all()
+    
+    return projects
