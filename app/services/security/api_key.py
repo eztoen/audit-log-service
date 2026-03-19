@@ -7,7 +7,7 @@ from app.core.models import Projects
 from app.services.security.hashing import hash_value, verify_value
 
 def generate_api_key() -> str:
-    prefix = 'sk_live'
+    prefix = 'sk_live_'
     public_part = secrets.token_hex(8)
     secret_part = secrets.token_hex(24)
     

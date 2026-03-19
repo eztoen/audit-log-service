@@ -1,6 +1,6 @@
-from datetime import UTC, datetime
+from datetime import datetime
 
-from sqlalchemy import String, ForeignKey, UniqueConstraint
+from sqlalchemy import String, ForeignKey, UniqueConstraint, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.models.base import Base
@@ -15,6 +15,9 @@ class Projects(Base):
     id:         Mapped[int] = mapped_column(primary_key=True)
     name:       Mapped[str] = mapped_column(String(100))
     public_key: Mapped[str] = mapped_column(String(16), index=True)
-    hashed_key: Mapped[str] = mapped_column(String(64))
+    hashed_key: Mapped[str] = mapped_column(String(100))
     user_id:    Mapped[int] = mapped_column(ForeignKey('users.id'))
-    created_at: Mapped[datetime] = mapped_column(default=datetime.now(UTC))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now()
+        )
