@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 
 from datetime import datetime
 
@@ -13,6 +13,10 @@ class ProjectReadSchema(BaseModel):
     model_config = {
         'from_attributes': True
     }
+    
+    @field_serializer('created_at')
+    def serialize_created_at(self, v: datetime):
+        return v.strftime('%d-%m-%y')
     
 class ProjectCreatedSchema(BaseModel):
     id: int

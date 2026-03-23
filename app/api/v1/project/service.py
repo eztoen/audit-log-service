@@ -44,10 +44,23 @@ async def create_project(
 
 async def get_projects(
     session: AsyncSession,
-    user_id: int
-) -> Projects:
-    stmt = select(Projects).where(Projects.user_id == user_id)
-    result = await session.execute(stmt)
+    user_id: int,
+    limit: int,
+    offset: int
+):
+    result = await session.execute(
+        select(Projects)
+        .where(Projects.user_id == user_id)
+        .order_by(Projects.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
     projects = result.scalars().all()
+    
+    if not projects:
+        return HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="There are no projects yet. Let's do it!"
+        )
     
     return projects
