@@ -58,9 +58,31 @@ async def get_projects(
     projects = result.scalars().all()
     
     if not projects:
-        return HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="There are no projects yet. Let's do it!"
         )
     
     return projects
+
+async def get_projects_by_search(
+    session: AsyncSession,
+    user_id: int,
+    q: str
+):
+    q = q.strip()
+    
+    if not q:
+        return []
+    
+    stmt = (
+        select(Projects)
+        .where(
+            Projects.user_id == user_id,
+            Projects.name.ilike(f'%{q}%')
+        )
+        .limit(20)
+    )
+    
+    result = await session.execute(stmt)
+    return result.scalars().all()
