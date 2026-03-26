@@ -1,12 +1,12 @@
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi import HTTPException, status
 
-from .schemas import ProjectCreateSchema
+from .schemas import ProjectCreateSchema, ProjectChangeNameSchema
 from app.core.models import Projects
-from app.services.security.hashing import hash_value, verify_value
+from app.services.security.hashing import hash_value
 from app.services.security.api_key import generate_api_key, split_api_key
 
 
@@ -25,7 +25,6 @@ async def create_project(
         public_key=public_part,
         hashed_key=hashed_secret,
         user_id=user_id
-        
     )
     
     session.add(project)
@@ -86,3 +85,38 @@ async def get_projects_by_search(
     
     result = await session.execute(stmt)
     return result.scalars().all()
+
+async def change_project_name(
+    session: AsyncSession,
+    user_id: int,
+    project_id: int,
+    data: ProjectChangeNameSchema
+):
+    stmt = (
+        update(Projects)
+        .where(
+            Projects.user_id == user_id,
+            Projects.id == project_id
+        )
+        .values(**data.model_dump(exclude_unset=True))
+        .returning(Projects)
+    )
+    
+    result = await session.execute(stmt)
+    project = result.scalar_one_or_none()
+    
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Project not found'
+        )
+    
+    try:
+        await session.commit()
+    except IntegrityError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Project with this name already exists'
+        )     
+        
+    return project

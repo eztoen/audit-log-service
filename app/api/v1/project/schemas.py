@@ -5,7 +5,7 @@ from datetime import datetime
 class ProjectCreateSchema(BaseModel):
     name: str = Field(..., min_length=3, max_length=100)
 
-class ProjectReadSchema(BaseModel):
+class ProjectResponseSchema(BaseModel):
     id: int
     name: str 
     created_at: datetime
@@ -23,3 +23,6 @@ class ProjectCreatedSchema(BaseModel):
     name: str
     api_key: str
     created_at: datetime
+    
+class ProjectChangeNameSchema(ProjectCreateSchema):
+    pass
