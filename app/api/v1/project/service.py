@@ -102,18 +102,17 @@ async def change_project_name(
         .returning(Projects)
     )
     
-    result = await session.execute(stmt)
-    project = result.scalar_one_or_none()
-    
-    if not project:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Project not found'
-        )
-    
     try:
+        result = await session.execute(stmt)
+        project = result.scalar_one_or_none()
+    
+        if not project:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Project not found'
+            )
         await session.commit()
-        await session.refresh(project)
+        
     except IntegrityError:
         await session.rollback()
         raise HTTPException(
