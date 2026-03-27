@@ -17,9 +17,9 @@ async def create_project(
     user_id: int = Depends(jwt_service.get_user_id)
 ):
     return await service.create_project(
-        new_project=new_project,
-        session=session,
-        user_id=user_id
+        new_project,
+        session,
+        user_id
     )
     
 @router.get('/', response_model=list[ProjectResponseSchema])
@@ -30,22 +30,34 @@ async def get_projects(
     user_id: int = Depends(jwt_service.get_user_id)
 ):
     return await service.get_projects(
-        session=session,
-        user_id=user_id,
-        limit=limit,
-        offset=offset
+        session,
+        user_id,
+        limit,
+        offset
+    )
+    
+@router.get('/{project_id}', response_model=ProjectResponseSchema)
+async def get_projects(
+    project_id: int,
+    session: AsyncSession = Depends(get_db),
+    user_id: int = Depends(jwt_service.get_user_id)
+):
+    return await service.get_project_by_id(
+        session,
+        user_id,
+        project_id
     )
     
 @router.get('/search', response_model=list[ProjectResponseSchema])
 async def get_projects(
-    q:       str = Query(...),
+    query:   str = Query(...),
     session: AsyncSession = Depends(get_db),
     user_id: int = Depends(jwt_service.get_user_id)
 ):
     return await service.get_projects_by_search(
-        session=session,
-        user_id=user_id,
-        q=q
+        session,
+        user_id,
+        query
     )
     
 @router.patch('/change_name/{project_id}', response_model=ProjectResponseSchema)
@@ -60,4 +72,16 @@ async def change_project_name(
         user_id,
         project_id,
         new_name
+    )
+    
+@router.delete('/delete/{project_id}')
+async def delete_project(
+    project_id: int,
+    session:    AsyncSession = Depends(get_db),
+    user_id:    int = Depends(jwt_service.get_user_id)
+):
+    return await service.delete_project(
+        session,
+        user_id,
+        project_id
     )

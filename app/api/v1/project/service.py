@@ -1,5 +1,5 @@
 from sqlalchemy import select, update
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi import HTTPException, status
@@ -27,9 +27,8 @@ async def create_project(
         user_id=user_id
     )
     
-    session.add(project)
-    
     try:
+        session.add(project)
         await session.commit()
         await session.refresh(project)
     except IntegrityError:
@@ -49,7 +48,10 @@ async def get_projects(
 ):
     result = await session.execute(
         select(Projects)
-        .where(Projects.user_id == user_id)
+        .where(
+            Projects.user_id == user_id,
+            Projects.is_deleted == False
+        )
         .order_by(Projects.created_at.desc())
         .limit(limit)
         .offset(offset)
@@ -64,10 +66,35 @@ async def get_projects(
     
     return projects
 
+async def get_project_by_id(
+    session: AsyncSession,
+    user_id: int,
+    project_id: int
+):
+    result = await session.execute(
+        select(Projects)
+        .where(
+            Projects.user_id == user_id,
+            Projects.id == project_id,
+            Projects.is_deleted == False
+        )
+    )
+    project = result.scalar_one_or_none()
+    
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found"
+        )
+    
+    return project
+
 async def get_projects_by_search(
     session: AsyncSession,
     user_id: int,
-    q: str
+    q: str,
+    limit: int,
+    offset: int
 ):
     q = q.strip()
     
@@ -78,8 +105,11 @@ async def get_projects_by_search(
         select(Projects)
         .where(
             Projects.user_id == user_id,
+            Projects.is_deleted == False,
             Projects.name.ilike(f'%{q}%')
         )
+        .limit(limit)
+        .offset(offset)
         .limit(20)
     )
     
@@ -96,7 +126,8 @@ async def change_project_name(
         update(Projects)
         .where(
             Projects.user_id == user_id,
-            Projects.id == project_id
+            Projects.id == project_id,
+            Projects.is_deleted == False
         )
         .values(**data.model_dump(exclude_unset=True))
         .returning(Projects)
@@ -121,3 +152,38 @@ async def change_project_name(
         )     
         
     return project
+
+async def delete_project(
+    session: AsyncSession,
+    user_id: int,
+    project_id: int
+) -> None:
+    
+    stmt = (
+        update(Projects)
+        .where(
+            Projects.id == project_id,
+            Projects.user_id == user_id,
+            Projects.is_deleted == False
+        )
+        .values(
+            is_deleted = True
+        )
+        .returning(Projects.id)
+    )
+    
+    try:
+        result = await session.execute(stmt)
+        deleted_project = result.scalar_one_or_none()
+        
+        if not deleted_project:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Project not found'
+            )
+        
+        await session.commit()
+        
+    except SQLAlchemyError:
+        await session.rollback()
+        raise

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import String, ForeignKey, UniqueConstraint, DateTime, func
+from sqlalchemy import Boolean, String, ForeignKey, UniqueConstraint, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.models.base import Base
@@ -20,4 +20,5 @@ class Projects(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now()
-        )
+    )
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
