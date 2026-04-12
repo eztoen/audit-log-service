@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Literal
-from pydantic import BaseModel, Field, EmailStr, field_validator
+from pydantic import BaseModel, Field
 
 class LogCreateSchema(BaseModel):
     service:   str = Field(..., max_length=100)
